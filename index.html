@@ -99,36 +99,46 @@
   const CONFIG = {
     GOOGLE_FORM_ID: '1FAIpQLSfczz_S3H38IhNDbkcF39s7Q87yVL1Dt-LHrj7IRf1RGMxKSQ',
     GOOGLE_FORM_ENTRY_ID: '414205615',
-    GOOGLE_SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNZknM7iQcTdXrlSCvNR-sekKGl2q8bsouOwSiif5SDDX5U8c7cUee0_2gh-vZ8iJfdolC7R6NkXNJ/pub?output=csv'
+    GOOGLE_SHEET_ID: '1BlcOjx66_YKEQYfrh_Gxj3pxg5QuqPRbEaQqJ3TO5mM',
+    GOOGLE_SHEET_GID: '113395996'
   };
 
-  function csvToNames(csvText){
-    const lines = csvText.trim().split(/\r?\n/);
-    if(lines.length === 0) return [];
-    const header = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
-    let col = header.findIndex(h => h.includes('nombre'));
-    if(col === -1) col = header.length - 1;
-    const names = [];
-    for(let i = 1; i < lines.length; i++){
-      const cells = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
-      if(cells[col]) names.push(cells[col]);
-    }
-    return names;
+  function loadListViaGviz(){
+    return new Promise((resolve, reject) => {
+      if(!CONFIG.GOOGLE_SHEET_ID){ reject(new Error('falta GOOGLE_SHEET_ID')); return; }
+      const callbackName = 'gvizCb_' + Date.now();
+      const timeout = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 8000);
+      function cleanup(){
+        clearTimeout(timeout);
+        delete window[callbackName];
+        if(script.parentNode) script.parentNode.removeChild(script);
+      }
+      window[callbackName] = function(response){
+        try{
+          const cols = response.table.cols.map(c => (c.label || '').toLowerCase());
+          let nameColIdx = cols.findIndex(c => c.includes('nombre'));
+          if(nameColIdx === -1) nameColIdx = cols.length - 1;
+          const names = (response.table.rows || [])
+            .map(r => (r.c[nameColIdx] && r.c[nameColIdx].v) ? String(r.c[nameColIdx].v).trim() : null)
+            .filter(Boolean);
+          cleanup();
+          resolve(names);
+        } catch(e){ cleanup(); reject(e); }
+      };
+      const script = document.createElement('script');
+      const gidParam = CONFIG.GOOGLE_SHEET_GID ? `&gid=${CONFIG.GOOGLE_SHEET_GID}` : '';
+      script.src = `https://docs.google.com/spreadsheets/d/${CONFIG.GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${callbackName}${gidParam}`;
+      script.onerror = () => { cleanup(); reject(new Error('script load failed')); };
+      document.body.appendChild(script);
+    });
   }
 
   async function loadList(){
     const statusEl = document.getElementById('listStatus');
     const listEl = document.getElementById('list');
-    if(!CONFIG.GOOGLE_SHEET_CSV_URL){
-      statusEl.textContent = 'Todavía no se configuró la lista (falta GOOGLE_SHEET_CSV_URL en el código).';
-      listEl.innerHTML = '';
-      return;
-    }
     statusEl.textContent = 'Cargando lista...';
     try{
-      const res = await fetch(CONFIG.GOOGLE_SHEET_CSV_URL + (CONFIG.GOOGLE_SHEET_CSV_URL.includes('?') ? '&' : '?') + 'cachebust=' + Date.now());
-      if(!res.ok) throw new Error('bad status');
-      const names = csvToNames(await res.text());
+      const names = await loadListViaGviz();
       listEl.innerHTML = '';
       names.forEach(n => {
         const li = document.createElement('li');
