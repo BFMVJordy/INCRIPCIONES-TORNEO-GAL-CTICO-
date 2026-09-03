@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscripciones · Saint Seiya: Soldiers' Soul</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#05060d; --panel:#0d1128; --panel-2:#151a35; --line:#2a2f52;
+    --gold:#c9a24e; --gold-bright:#f4d488; --bronze:#8a6a3f; --violet:#5546a3;
+    --ash:#ede8dc; --ash-dim:rgba(237,232,220,0.4); --red:#e08a6a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--void);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(85,70,163,0.35), transparent 60%),
+      radial-gradient(1200px 800px at 85% 110%, rgba(201,162,78,0.10), transparent 60%),
+      radial-gradient(1px 1px at 10% 20%, rgba(237,232,220,0.5) 1px, transparent 1px),
+      radial-gradient(1px 1px at 80% 15%, rgba(237,232,220,0.4) 1px, transparent 1px),
+      radial-gradient(1px 1px at 40% 70%, rgba(237,232,220,0.35) 1px, transparent 1px),
+      radial-gradient(1px 1px at 60% 40%, rgba(237,232,220,0.3) 1px, transparent 1px),
+      radial-gradient(1px 1px at 25% 85%, rgba(237,232,220,0.3) 1px, transparent 1px),
+      radial-gradient(1px 1px at 92% 60%, rgba(237,232,220,0.3) 1px, transparent 1px);
+    background-attachment:fixed; background-size:cover;
+    color:var(--ash); font-family:'Manrope', system-ui, sans-serif; min-height:100vh;
+  }
+  header.app-header{padding:44px 20px 22px; text-align:center;}
+  .eyebrow{font-family:'Cinzel', Georgia, serif; font-size:12px; letter-spacing:3px; color:var(--gold); margin-bottom:10px; opacity:0.85;}
+  h1{font-family:'Cinzel', Georgia, serif; font-weight:700; font-size:clamp(24px, 5vw, 36px); margin:0 0 8px; text-shadow:0 0 24px rgba(201,162,78,0.35); letter-spacing:1px;}
+  header.app-header p{max-width:480px; margin:0 auto; color:var(--ash-dim); font-size:14px; line-height:1.5;}
+
+  main{max-width:600px; margin:0 auto; padding:0 16px 80px;}
+  .panel{
+    background:linear-gradient(180deg, rgba(13,17,40,0.92), rgba(21,26,53,0.92));
+    border:1px solid var(--line); border-radius:14px; padding:24px;
+    margin:0 0 30px; box-shadow:0 20px 50px rgba(0,0,0,0.35); backdrop-filter:blur(4px);
+  }
+  .panel h3{font-family:'Cinzel', Georgia, serif; font-size:13.5px; margin:22px 0 8px; color:var(--gold); font-weight:600;}
+  .panel .hint{font-size:13px; color:var(--ash-dim); margin:0 0 16px; line-height:1.5;}
+
+  input[type="text"]{
+    width:100%; background:rgba(5,6,13,0.6); border:1px solid var(--line); border-radius:9px;
+    color:var(--ash); font-family:'Manrope', sans-serif; font-size:14.5px; padding:11px 14px; line-height:1.5;
+  }
+  input:focus{outline:none; border-color:var(--gold);}
+  .field-label{display:block; font-size:12.5px; color:var(--ash-dim); margin:0 0 6px;}
+  .btns{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;}
+  button{font-family:'Manrope', sans-serif; font-weight:600; font-size:14px; border-radius:8px; padding:11px 18px; cursor:pointer; border:1px solid transparent; transition:transform 0.12s ease, filter 0.12s ease;}
+  button:active{transform:scale(0.97);}
+  button:disabled{opacity:0.5; cursor:default;}
+  .btn-primary{background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#241a05; box-shadow:0 6px 18px rgba(201,162,78,0.3);}
+  .btn-primary:hover{filter:brightness(1.06);}
+  .btn-ghost{background:transparent; border-color:var(--line); color:var(--ash);}
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold-bright);}
+
+  #msg{font-size:13px; margin-top:12px; display:none;}
+  #list{list-style:none; padding:0; margin:10px 0 0; display:flex; flex-direction:column; gap:6px;}
+  #list li{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:13.5px;}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="eyebrow">Saint Seiya · Torneos</div>
+  <h1>Inscripciones</h1>
+  <p>Escribe tu nombre de guerrero para anotarte al próximo torneo.</p>
+</header>
+
+<main>
+  <div class="panel">
+    <span class="field-label">Nombre del guerrero</span>
+    <input type="text" id="nombreInput" placeholder="Ej: Seiya de Pegaso">
+    <div id="msg"></div>
+    <div class="btns">
+      <button class="btn-primary" id="submitBtn">Inscribirme</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin-top:0;">Guerreros inscritos</h3>
+    <p class="hint" id="listStatus">Cargando lista...</p>
+    <ul id="list"></ul>
+    <div class="btns">
+      <button class="btn-ghost" id="refreshBtn">↻ Actualizar lista</button>
+    </div>
+  </div>
+</main>
+
+<script>
+  /* ---------- configura aquí tus 3 datos del Google Form ----------
+     1) GOOGLE_FORM_ID: la parte "ABC123..." de tu URL, entre /forms/d/e/ y /viewform
+     2) GOOGLE_FORM_ENTRY_ID: el número después de "entry." en el enlace pre-rellenado
+     3) GOOGLE_SHEET_CSV_URL: la URL que te dio "Publicar en la web" en formato CSV
+  ------------------------------------------------------------------- */
+  const CONFIG = {
+    GOOGLE_FORM_ID: '1FAIpQLSfczz_S3H38IhNDbkcF39s7Q87yVL1Dt-LHrj7IRf1RGMxKSQ',
+    GOOGLE_FORM_ENTRY_ID: '414205615',
+    GOOGLE_SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNZknM7iQcTdXrlSCvNR-sekKGl2q8bsouOwSiif5SDDX5U8c7cUee0_2gh-vZ8iJfdolC7R6NkXNJ/pub?output=csv'
+  };
+
+  function csvToNames(csvText){
+    const lines = csvText.trim().split(/\r?\n/);
+    if(lines.length === 0) return [];
+    const header = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
+    let col = header.findIndex(h => h.includes('nombre'));
+    if(col === -1) col = header.length - 1;
+    const names = [];
+    for(let i = 1; i < lines.length; i++){
+      const cells = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+      if(cells[col]) names.push(cells[col]);
+    }
+    return names;
+  }
+
+  async function loadList(){
+    const statusEl = document.getElementById('listStatus');
+    const listEl = document.getElementById('list');
+    if(!CONFIG.GOOGLE_SHEET_CSV_URL){
+      statusEl.textContent = 'Todavía no se configuró la lista (falta GOOGLE_SHEET_CSV_URL en el código).';
+      listEl.innerHTML = '';
+      return;
+    }
+    statusEl.textContent = 'Cargando lista...';
+    try{
+      const res = await fetch(CONFIG.GOOGLE_SHEET_CSV_URL + (CONFIG.GOOGLE_SHEET_CSV_URL.includes('?') ? '&' : '?') + 'cachebust=' + Date.now());
+      if(!res.ok) throw new Error('bad status');
+      const names = csvToNames(await res.text());
+      listEl.innerHTML = '';
+      names.forEach(n => {
+        const li = document.createElement('li');
+        li.textContent = n;
+        listEl.appendChild(li);
+      });
+      statusEl.textContent = names.length ? `${names.length} guerrero(s) inscrito(s).` : 'Todavía no hay inscripciones. ¡Sé el primero!';
+    } catch(e){
+      statusEl.textContent = 'No se pudo cargar la lista.';
+      listEl.innerHTML = '';
+    }
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const input = document.getElementById('nombreInput');
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('submitBtn');
+    const name = input.value.trim();
+    if(!name){
+      msg.style.display = 'block'; msg.style.color = 'var(--red)';
+      msg.textContent = 'Escribe un nombre.';
+      return;
+    }
+    if(!CONFIG.GOOGLE_FORM_ID || !CONFIG.GOOGLE_FORM_ENTRY_ID){
+      msg.style.display = 'block'; msg.style.color = 'var(--red)';
+      msg.textContent = 'Falta configurar el Google Form en el código (CONFIG).';
+      return;
+    }
+    btn.disabled = true;
+    const actionUrl = `https://docs.google.com/forms/d/e/${CONFIG.GOOGLE_FORM_ID}/formResponse`;
+    const body = new URLSearchParams();
+    body.append('entry.' + CONFIG.GOOGLE_FORM_ENTRY_ID, name);
+    try{
+      // modo no-cors: no podemos leer la respuesta, pero el envío sí llega a Google
+      await fetch(actionUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+      msg.style.display = 'block'; msg.style.color = 'var(--gold-bright)';
+      msg.textContent = `¡Listo, ${name}! Te anotaste al torneo.`;
+      input.value = '';
+      setTimeout(loadList, 1500);
+    } catch(e){
+      msg.style.display = 'block'; msg.style.color = 'var(--red)';
+      msg.textContent = 'No se pudo enviar. Revisa tu conexión e intenta de nuevo.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('nombreInput').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') document.getElementById('submitBtn').click();
+  });
+  document.getElementById('refreshBtn').addEventListener('click', loadList);
+
+  loadList();
+</script>
+</body>
+</html>
